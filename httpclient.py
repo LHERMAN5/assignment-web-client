@@ -22,7 +22,7 @@ import sys
 import socket
 import re
 # you may use urllib to encode data appropriately
-import urllib.parse
+from urllib.parse import urlparse
 
 def help():
     print("httpclient.py [GET/POST] [URL]\n")
@@ -57,7 +57,15 @@ class HTTPClient(object):
         url = url.split("/", 1)
         dest = url[0].split(":")
 
-        return dest[0], int(dest [1]), url[1]
+        #result = urlparse(url)
+
+
+        #print("Url Host: "+dest[0]+"\r\n")
+        #print("Url Port: "+dest[1]+"\r\n")
+        #print("Url Path: "+url[1]+"\r\n")
+
+        return dest[0], dest [1], url[1]
+        #return result.hostname, result.port, result.path
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -80,47 +88,59 @@ class HTTPClient(object):
     def GET(self, url, args=None):
         code = 500
         body = ""
-        print(url)
+        print("Url: "+url+"\r\n")
 
         host, port, path = self.get_url(url)
-        sock = self.connect(host, port)
+        print("GET Host: "+host+"\r\n")
+        print("GET Port: "+port+"\r\n")
+        print("GET Path: "+path+"\r\n")
 
-        request = "GET " + path + "HTTP/1.1\r\nHost: " + host
-        sock.sendall(bytes(request, "utf-8"))
+        sock = self.connect(host, int(port))
 
+        request = "GET /" + path + " HTTP/1.1\r\nHost: " + host
+        print("GET Request: "+request+"\r\n")
+        print("before sendall\r\n")
+        sock.sendall(bytes(request.encode(), "utf-8"))
+        print("after sendall\r\n")
         response = self.recvall(self.sock)
+        print("GET Response: "+response+"\r\n")
+
         sock.close()
-        print(response)
+
+        print("GET response: "+response)
         code = self.get_code()
-        print(code)
+        print("GET code: "+code)
         header = self.get_headers()
-        print(header)
+        print("GET header"+header)
         body = self.get_body()
-        print(body)
+        print("Get body: "+body)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
 
-        print(url)
+        print("POST Url: "+url+"\r\n")
 
         host, port, path = self.get_url(url)
-        sock = self.connect(host, port)
+        sock = self.connect(host, int(port))
 
-        request = "POST " + path + "HTTP/1.1\r\nHost: " + host
-        sock.sendall(bytes(request, "utf-8"))
-
+        request = "POST " + path + " HTTP/1.1\r\nHost: " + host
+        print("POST Request: "+request+"\r\n")
+        print("before sendall\r\n")
+        sock.sendall(bytes(request.encode(), "utf-8"))
+        print("after sendall\r\n")
         response = self.recvall(self.sock)
+
         sock.close()
 
-        print(response)
+        print("POST Response: "+response+"\r\n")
         code = self.get_code()
-        print(code)
+        print("POST Code: "+code+"\r\n")
         header = self.get_headers()
-        print(header)
+        print("POST Header: "+ header+"\r\n")
         body = self.get_body()
-        print(body)
+        print("POST Body: "+body+"\r\n")
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):

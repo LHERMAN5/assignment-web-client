@@ -41,13 +41,23 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        return None
+        code = data.split(" ", 2)[1]
+        return code
 
     def get_headers(self,data):
-        return None
+        header = data.split("\r\n\r\n")[0]
+        return header
 
     def get_body(self, data):
-        return None
+        body = data.split("\r\n\r\n")[1]
+        return body
+    
+    def get_url(self, url):
+        url = url.strip("http://")
+        url = url.split("/", 1)
+        dest = url[0].split(":")
+
+        return dest[0], int(dest [1]), url[1]
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -70,11 +80,47 @@ class HTTPClient(object):
     def GET(self, url, args=None):
         code = 500
         body = ""
+        print(url)
+
+        host, port, path = self.get_url(url)
+        sock = self.connect(host, port)
+
+        request = "GET " + path + "HTTP/1.1\r\nHost: " + host
+        sock.sendall(bytes(request, "utf-8"))
+
+        response = self.recvall(self.sock)
+        sock.close()
+        print(response)
+        code = self.get_code()
+        print(code)
+        header = self.get_headers()
+        print(header)
+        body = self.get_body()
+        print(body)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
+
+        print(url)
+
+        host, port, path = self.get_url(url)
+        sock = self.connect(host, port)
+
+        request = "POST " + path + "HTTP/1.1\r\nHost: " + host
+        sock.sendall(bytes(request, "utf-8"))
+
+        response = self.recvall(self.sock)
+        sock.close()
+
+        print(response)
+        code = self.get_code()
+        print(code)
+        header = self.get_headers()
+        print(header)
+        body = self.get_body()
+        print(body)
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
